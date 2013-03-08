@@ -4,5 +4,11 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dev-dependencies [[swank-clojure "1.4.2"]]
-  :dependencies [[org.clojure/clojure "1.4.0"]
-                 [com.netflix.astyanax/astyanax "1.0.2-WAYIN"]])
+  :dependencies [[org.clojure/clojure                     "1.4.0"]
+                 [com.netflix.astyanax/astyanax-core      "1.56.29"]
+                 [com.netflix.astyanax/astyanax-thrift    "1.56.29"
+                  :exclusions [org.apache.cassandra/cassandra-thrift]]
+                 [com.netflix.astyanax/astyanax-cassandra "1.56.29"
+                  :exclusions [org.apache.cassandra/cassandra-all]] 
+                 [org.apache.cassandra/cassandra-all      "1.2.2"]
+                 [org.apache.cassandra/cassandra-thrift   "1.2.2"]])
