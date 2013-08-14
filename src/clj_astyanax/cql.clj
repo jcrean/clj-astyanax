@@ -59,14 +59,13 @@
     (create-keyspace :jctest))
 
   (with-cluster :test
-    (insert-row :jctest/foo {:pid "123" :fname "jc" :lname "crean"}))
-
-  (with-cluster :test
     (create-table! :jctest/foo
-                   [:pid :varchar
+                   [:pid   :int
                     :fname :varchar
                     :lname :varchar]
                    {:pk :pid}))
 
+  (with-cluster :test
+    (insert-row :jctest/foo {:pid (Integer. 123) :fname "jc" :lname "crean"}))
 
   )

@@ -5,6 +5,7 @@
    clj-astyanax.bindings)
   (:import
    [com.netflix.astyanax.model ColumnFamily]
+   [com.netflix.astyanax.serializers StringSerializer IntegerSerializer]
    [com.netflix.astyanax.thrift ThriftFamilyFactory]
    [com.netflix.astyanax.connectionpool NodeDiscoveryType]
    [com.netflix.astyanax.impl AstyanaxConfigurationImpl]
@@ -72,12 +73,13 @@
 (defn lookup-keyspace [ks-name]
   (get-in @keyspace-registry [(keyword ks-name)]))
 
+
 (defn keyspace-client [ks-name]
   (if-let [client (:client (lookup-keyspace ks-name))]
     client
     (do
       (register-keyspace ks-name cluster-config)
-      (lookup-keyspace ks-name))))
+      (:client (lookup-keyspace ks-name)))))
 
 (defn create-keyspace [ks-name & [opts]]
   (.createKeyspace
@@ -93,11 +95,23 @@
 (defn lookup-cf [cf-name]
   (get @column-family-registry (keyword cf-name)))
 
+
+(comment
+
+  (get-serializer-fn nil)
+)
 (defn register-cf [cf-name & [config]]
   (let [key-serializer (get-serializer-fn (:key-serializer config))
         col-serializer (get-serializer-fn (:col-serializer config))]
     (swap! column-family-registry assoc
-           (keyword cf-name) (ColumnFamily/newColumnFamily (name cf-name) (key-serializer) (col-serializer)))))
+           (keyword cf-name) (ColumnFamily/newColumnFamily (safe-name cf-name) (key-serializer) (col-serializer)))))
+
+
+(defonce cql3-column-family
+  (ColumnFamily/newColumnFamily
+   "cql3-cf"
+   (make-serializer :int32)
+   (make-serializer :string)))
 
 (defonce cf-schema-column-families
   (ColumnFamily/newColumnFamily
@@ -115,17 +129,19 @@
                    (integer? bind)
                    (.withIntegerValue q bind)
 
+                   (= java.lang.Long (class bind))
+                   (.withLongValue q bind)
+
                    (float? bind)
                    (.withFloatValue q bind)
 
                    :default
-                   (.withFloatValue q bind)))
+                   (.withValue q bind)))
            (.. ks
                (prepareQuery cf)
                (withCql stmt)
                (asPreparedStatement))
            binds)))
-
 
 (defn schema-column-family-info [keyspace table-name]
   (let [res (first

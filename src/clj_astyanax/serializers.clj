@@ -7,7 +7,10 @@
     (.substring val (count prefix))))
 
 (defn get-serializer-fn [sid]
-  (cond (or (= :string sid)
+  (cond (nil? sid)
+        #(StringSerializer/get)
+
+        (or (= :string sid)
             (= "UTF8Type" sid))
         #(StringSerializer/get)
 
